@@ -1,0 +1,22 @@
+target: test.sh
+
+parameters:
+  -  name: vm.dirty_ratio
+     type: range
+     get: "sysctl -n vm.dirty_ratio"  # 读取当前值
+     set: "sysctl -w vm.dirty_ratio={}"  # 设置新值
+     steps: 5
+     min: 5
+     max: 30
+  -  name: net.core.somaxconn
+     type: options
+     get: "sysctl -n net.core.somaxconn"
+     set: "sysctl -w net.core.somaxconn={}"
+     options:
+      - 64
+      - 128
+      - 256
+
+thresholds:
+  improvement: 0  # 提升率超过 1% 才认为有效
+
