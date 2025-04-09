@@ -4,6 +4,9 @@ import numpy as np
 from skopt import Optimizer
 from skopt.space import Real, Integer, Categorical
 import subprocess
+from logger import Logger
+# 获取日志实例
+logger = Logger().get_logger()
 class DatasetGenerator:
     def __init__(self,filter):
         """
@@ -11,6 +14,8 @@ class DatasetGenerator:
         :param significant_params: Filter 类中的 significant_params 列表
         :return: 搜索空间列表
         """
+        self.best_params = None
+        self.best_value = float('inf')
         self.filter =filter
         self.space = []
         print(filter.significant_params)
@@ -62,6 +67,9 @@ class DatasetGenerator:
             result = self.objective(next_params)
             optimizer.tell(next_params, result)
             self.data.append((next_params, result))
+            if result < self.best_value:
+                self.best_value = result
+                self.best_params = next_params
         return self.data
 
     def store(self, filename="dataset.csv"):
@@ -79,5 +87,11 @@ class DatasetGenerator:
             for params, result in self.data:
                 writer.writerow(params + [result])
 
-        print(f"数据集已保存到 {filename}")
+        logger.info(f"数据集已保存到 {filename}")
 
+    def get_best_from_dataset(self):
+        logger.info(f"最优值: {self.best_value}")
+        best_params_info = ", ".join(
+            [f"{param.name}: {value}" for param, value in zip(self.filter.significant_params, self.best_params)]
+        )
+        logger.info(f"最优参数: {best_params_info}")

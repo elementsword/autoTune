@@ -2,7 +2,9 @@ import readTool
 import time
 import subprocess
 from parameter import Parameter
-
+from logger import Logger
+# 获取日志实例
+logger = Logger().get_logger()
 class BaseData:
     def __init__(self):
         # 加载配置文件
@@ -34,11 +36,11 @@ class BaseData:
                 result = subprocess.run([each_parameter.get], capture_output=True, text=True, check=True, shell=True)
                 value = result.stdout.strip()
                 if each_parameter.set_Default(value):
-                    print(f"参数 {each_parameter.name} 的初始值设置完毕: {value}")
+                    logger.info(f"参数 {each_parameter.name} 的初始值设置完毕: {value}")
                 else:
-                    print(f"参数 {each_parameter.name} 的初始值设置失败: {value}")
+                    logger.info(f"参数 {each_parameter.name} 的初始值设置失败: {value}")
             except subprocess.CalledProcessError:
-                print(f"无法获取参数: {param}")
+                logger.info(f"无法获取参数: {param}")
         self.target = self.config['target']
         # 记录开始时间
         start_time = time.time()

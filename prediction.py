@@ -3,13 +3,15 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 import numpy as np
 import joblib
-
+from logger import Logger
+# 获取日志实例
+logger = Logger().get_logger()
 class Prediction:
     def __init__(self):
         self.model = xgb.XGBRegressor(
         objective='reg:squarederror',  # 使用平方误差作为目标函数
         n_estimators=100,             # 树的数量
-        learning_rate=0.1,            # 学习率
+        learning_rate=0.3,            # 学习率
         max_depth=4,                  # 树的最大深度
         random_state=42
         )
@@ -20,7 +22,7 @@ class Prediction:
         检查模型是否已训练
         :return: True 如果模型已训练，否则 False
         """
-        return self.X_train is not None
+        return self.model is not None
     
     def train(self,dataset):
 
@@ -42,16 +44,18 @@ class Prediction:
         # 评估模型
         self.mse = mean_squared_error(self.y_test, self.y_pred)
         print(f"均方误差 (MSE): {self.mse}")
-
-        # 可选：打印特征重要性
-        print("特征重要性:")
-        print(self.model.feature_importances_)
-        return self.model.feature_importances_
-    
         
+    def get_feature_importances(self):
+        # 检查模型是否已训练
+        if not self.is_model_trained():
+            logger.error("模型尚未训练，请先调用 train 方法进行训练。")
+            raise ValueError("模型尚未训练，请先调用 train 方法进行训练。")
+        return self.model.feature_importances_
+
     def predict_best(self, candidate_params):
         # 检查模型是否已训练
         if not self.is_model_trained():
+            logger.error("模型尚未训练，请先调用 train 方法进行训练。")
             raise ValueError("模型尚未训练，请先调用 train 方法进行训练。")
         """
         使用训练好的模型预测候选参数的目标值，并返回最优参数配置
@@ -63,17 +67,33 @@ class Prediction:
         best_params = candidate_params[best_index]
         best_value = predictions[best_index]
         return best_params, best_value
+    def predict(self, params):
+        """
+        使用训练好的模型预测单组参数的目标值
+        :param params: 单组参数（一维数组）
+        :return: 预测目标值
+        """
+        # 检查模型是否已训练
+        if not self.is_model_trained():
+            logger.error("模型尚未训练，请先调用 train 方法进行训练。")
+            raise ValueError("模型尚未训练，请先调用 train 方法进行训练。")
+        #if params.shape[1] != self.X_train.shape[1]:
+        #    raise ValueError(f"每组参数的维度必须为 {self.X_train.shape[1]}。")
+        # 预测目标值
+        prediction = self.model.predict(params)
+        return prediction[0]
     
     def save_model(self, filename="xgboost_model.pkl"):
         # 检查模型是否已训练
         if not self.is_model_trained():
+            logger.error("模型尚未训练，请先调用 train 方法进行训练。")
             raise ValueError("模型尚未训练，请先调用 train 方法进行训练。")
         """
         保存训练好的模型到文件
         :param filename: 保存的文件名
         """
         joblib.dump(self.model, filename)
-        print(f"模型已保存到 {filename}")
+        logger.info(f"模型已保存到 {filename}")
 
     def load_model(self, filename="xgboost_model.pkl"):
         """
@@ -81,4 +101,4 @@ class Prediction:
         :param filename: 模型文件名
         """
         self.model = joblib.load(filename)
-        print(f"模型已从 {filename} 加载")
+        logger.info(f"模型已从 {filename} 加载")
