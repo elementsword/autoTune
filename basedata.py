@@ -31,14 +31,15 @@ class BaseData:
                 param.get("get"),
                 param.get("set")
                 )
-                self.parameter_list.append(each_parameter)
                 # 执行 sysctl 读取内核参数
                 result = subprocess.run([each_parameter.get], capture_output=True, text=True, check=True, shell=True)
                 value = result.stdout.strip()
                 if each_parameter.set_Default(value):
                     logger.info(f"参数 {each_parameter.name} 的初始值设置完毕: {value}")
+                    self.parameter_list.append(each_parameter)
                 else:
                     logger.info(f"参数 {each_parameter.name} 的初始值设置失败: {value}")
+                    
             except subprocess.CalledProcessError:
                 logger.info(f"无法获取参数: {param}")
         self.target = self.config['target']

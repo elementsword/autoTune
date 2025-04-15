@@ -8,14 +8,8 @@ from logger import Logger
 logger = Logger().get_logger()
 class Prediction:
     def __init__(self):
-        self.model = xgb.XGBRegressor(
-        objective='reg:squarederror',  # 使用平方误差作为目标函数
-        n_estimators=100,             # 树的数量
-        learning_rate=0.3,            # 学习率
-        max_depth=4,                  # 树的最大深度
-        random_state=42
-        )
-        self.X_train = None  # 初始化训练数据为空
+
+        self.model = None  # 初始化训练数据为空
 
     def is_model_trained(self):
         """
@@ -25,7 +19,13 @@ class Prediction:
         return self.model is not None
     
     def train(self,dataset):
-
+        self.model = xgb.XGBRegressor(
+        objective='reg:squarederror',  # 使用平方误差作为目标函数
+        n_estimators=100,             # 树的数量
+        learning_rate=0.3,            # 学习率
+        max_depth=4,                  # 树的最大深度
+        random_state=42
+        )
         # 准备数据
         X = np.array([params for params, _ in dataset])  # 特征：参数配置
         y = np.array([result for _, result in dataset])  # 目标值：运行时间
@@ -53,20 +53,29 @@ class Prediction:
         return self.model.feature_importances_
 
     def predict_best(self, candidate_params):
+        """
+        遍历候选参数组合，找到预测目标值最小的参数组合
+        :param candidate_params: 所有候选参数组合（一维列表，每个元素是一个元组）
+        :return: 最优参数组合及其预测值
+        """
         # 检查模型是否已训练
         if not self.is_model_trained():
             logger.error("模型尚未训练，请先调用 train 方法进行训练。")
             raise ValueError("模型尚未训练，请先调用 train 方法进行训练。")
-        """
-        使用训练好的模型预测候选参数的目标值，并返回最优参数配置
-        :param candidate_params: 候选参数配置列表
-        :return: 最优参数配置及其预测值
-        """
-        predictions = self.model.predict(candidate_params)
-        best_index = np.argmin(predictions)  # 找到目标值最小的索引
-        best_params = candidate_params[best_index]
-        best_value = predictions[best_index]
-        return best_params, best_value
+
+        best_params = None
+        best_value = float('inf')
+
+        for params in candidate_params:
+            # 将参数组合转换为二维数组
+            params = np.array(params).reshape(1, -1)
+            prediction = self.predict(params)
+            if prediction < best_value:
+                best_value = prediction
+                best_params = params
+
+        logger.info(f"最优参数组合: {best_params.flatten()}, 预测值: {best_value}")
+        return best_params.flatten(), best_value
     def predict(self, params):
         """
         使用训练好的模型预测单组参数的目标值
@@ -77,8 +86,8 @@ class Prediction:
         if not self.is_model_trained():
             logger.error("模型尚未训练，请先调用 train 方法进行训练。")
             raise ValueError("模型尚未训练，请先调用 train 方法进行训练。")
-        #if params.shape[1] != self.X_train.shape[1]:
-        #    raise ValueError(f"每组参数的维度必须为 {self.X_train.shape[1]}。")
+        if params.shape[1] != self.model.n_features_in_:
+            raise ValueError(f"每组参数的维度必须为 {self.model.n_features_in_}。")
         # 预测目标值
         prediction = self.model.predict(params)
         return prediction[0]

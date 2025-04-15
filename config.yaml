@@ -1,22 +1,135 @@
 target: test.sh
 
 parameters:
-  -  name: vm.dirty_ratio
-     type: range
-     get: "sysctl -n vm.dirty_ratio"  # 读取当前值
-     set: "sysctl -w vm.dirty_ratio={}"  # 设置新值
-     steps: 5
-     min: 5
-     max: 30
-  -  name: net.core.somaxconn
-     type: options
-     get: "sysctl -n net.core.somaxconn"
-     set: "sysctl -w net.core.somaxconn={}"
-     options:
-      - 64
-      - 128
-      - 256
+  - name: vm.dirty_ratio
+    type: range
+    get: "sysctl -n vm.dirty_ratio"
+    set: "sysctl -w vm.dirty_ratio={}"
+    steps: 5
+    min: 5
+    max: 30
+
+  - name: net.core.somaxconn
+    type: options
+    get: "sysctl -n net.core.somaxconn"
+    set: "sysctl -w net.core.somaxconn={}"
+    options: [64, 128, 256]
+
+  - name: vm.dirty_background_ratio
+    type: range
+    get: "sysctl -n vm.dirty_background_ratio"
+    set: "sysctl -w vm.dirty_background_ratio={}"
+    steps: 5
+    min: 5
+    max: 100
+
+  - name: vm.swappiness
+    type: range
+    get: "sysctl -n vm.swappiness"
+    set: "sysctl -w vm.swappiness={}"
+    steps: 5
+    min: 0
+    max: 100
+
+  - name: net.ipv4.tcp_fin_timeout
+    type: range
+    get: "sysctl -n net.ipv4.tcp_fin_timeout"
+    set: "sysctl -w net.ipv4.tcp_fin_timeout={}"
+    steps: 10
+    min: 10
+    max: 60
+
+  - name: net.ipv4.tcp_tw_reuse
+    type: options
+    get: "sysctl -n net.ipv4.tcp_tw_reuse"
+    set: "sysctl -w net.ipv4.tcp_tw_reuse={}"
+    options: [0, 1]
+
+  - name: net.ipv4.tcp_keepalive_time
+    type: options
+    get: "sysctl -n net.ipv4.tcp_keepalive_time"
+    set: "sysctl -w net.ipv4.tcp_keepalive_time={}"
+    options: [300, 600, 1200, 1800, 3600]
+
+  - name: net.ipv4.tcp_max_syn_backlog
+    type: options
+    get: "sysctl -n net.ipv4.tcp_max_syn_backlog"
+    set: "sysctl -w net.ipv4.tcp_max_syn_backlog={}"
+    options: [2048, 4096, 8192]
+
+  - name: net.core.netdev_max_backlog
+    type: range
+    get: "sysctl -n net.core.netdev_max_backlog"
+    set: "sysctl -w net.core.netdev_max_backlog={}"
+    steps: 100
+    min: 1000
+    max: 10000
+
+  - name: fs.file-max
+    type: options
+    get: "sysctl -n fs.file-max"
+    set: "sysctl -w fs.file-max={}"
+    options: [65536, 131072, 262144, 524288, 1048576]
+
+  - name: kernel.pid_max
+    type: options
+    get: "sysctl -n kernel.pid_max"
+    set: "sysctl -w kernel.pid_max={}"
+    options: [32768, 131072, 262144, 524288, 1048576]
+
+  - name: kernel.threads-max
+    type: range
+    get: "sysctl -n kernel.threads-max"
+    set: "sysctl -w kernel.threads-max={}"
+    steps: 500
+    min: 10000
+    max: 100000
+
+  - name: vm.min_free_kbytes
+    type: range
+    get: "sysctl -n vm.min_free_kbytes"
+    set: "sysctl -w vm.min_free_kbytes={}"
+    steps: 65536
+    min: 65536
+    max: 262144
+
+  - name: vm.vfs_cache_pressure
+    type: options
+    get: "sysctl -n vm.vfs_cache_pressure"
+    set: "sysctl -w vm.vfs_cache_pressure={}"
+    options: [50, 100, 150, 200]
+
+  - name: net.ipv4.tcp_max_tw_buckets
+    type: options
+    get: "sysctl -n net.ipv4.tcp_max_tw_buckets"
+    set: "sysctl -w net.ipv4.tcp_max_tw_buckets={}"
+    options: [10000, 50000, 100000, 200000]
+
+  - name: net.ipv4.tcp_syncookies
+    type: options
+    get: "sysctl -n net.ipv4.tcp_syncookies"
+    set: "sysctl -w net.ipv4.tcp_syncookies={}"
+    options: [0, 1]
+
+  - name: net.ipv4.tcp_max_orphans
+    type: range
+    get: "sysctl -n net.ipv4.tcp_max_orphans"
+    set: "sysctl -w net.ipv4.tcp_max_orphans={}"
+    steps: 8192
+    min: 8192
+    max: 65536
+
+  - name: net.ipv4.tcp_keepalive_intvl
+    type: options
+    get: "sysctl -n net.ipv4.tcp_keepalive_intvl"
+    set: "sysctl -w net.ipv4.tcp_keepalive_intvl={}"
+    options: [15, 30, 60, 120, 300]
+
+  - name: net.ipv4.tcp_keepalive_probes
+    type: options
+    get: "sysctl -n net.ipv4.tcp_keepalive_probes"
+    set: "sysctl -w net.ipv4.tcp_keepalive_probes={}"
+    options: [3, 5, 9]
 
 thresholds:
-  improvement: 0  # 提升率超过 1% 才认为有效
-
+  improvement: 0

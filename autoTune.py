@@ -33,9 +33,12 @@ def main():
 
         # 生成数据集
         generator = DatasetGenerator(filter)
-        dataset = generator.run_optimization()
+        dataset = generator.run_optimization(200)
         generator.store()
         generator.get_best_from_dataset()
+        print("1")
+        #all_combinations = generator.all_params()
+        print("2")
         # 训练模型
         prediction = Prediction()
         prediction.train(dataset)
@@ -43,7 +46,7 @@ def main():
         feature_importances = prediction.get_feature_importances()
         # 打印特征重要性
         printImportance(filter.significant_params, feature_importances)
-
+        #prediction.predict_best(all_combinations)
         # 保存模型
         prediction.save_model()
 
